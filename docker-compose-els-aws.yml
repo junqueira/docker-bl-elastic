@@ -1,0 +1,46 @@
+version: '3'
+services:
+
+  # elasticsearch:
+  #   image: amazon/opendistro-for-elasticsearch:0.7.0
+  #   container_name: elasticsearch
+  #   environment:
+  #     - bootstrap.memory_lock=true # along with the memlock settings below, disables swapping
+  #     #- "ES_JAVA_OPTS=-Xms4g -Xmx4g" # minimum and maximum Java heap size, recommend setting both to 50% of system RAM
+  #     # - "ES_JAVA_OPTS=-Xms4g -Xmx4g -XX:-UseConcMarkSweepGC -XX:-UseCMSInitiatingOccupancyOnly -XX:+UseG1GC -XX:InitiatingHeapOccupancyPercent=75"
+  #     - "ES_JAVA_OPTS=-Xms108m -Xmx108m"
+  #   ulimits:
+  #     memlock:
+  #       soft: -1
+  #       hard: -1
+  #   # volumes:
+  #   #   - esdata:/usr/share/elasticsearch/data
+  #   ports:
+  #     - 9200:9200
+  #     - 9600:9600 # required for Performance Analyzer
+  #   networks:
+  #     - esnet
+
+  kibana:
+    image: amazon/opendistro-for-elasticsearch-kibana:0.7.0
+    container_name: kibana
+    ports:
+      - 5601:5601
+    volumes:
+      - ./kibana.yml:/usr/share/kibana/config/kibana.yml    
+    expose:
+      - "5601"
+    environment:
+      - ELASTICSEARCH_URL=http://localhost:9200
+      # - ELASTICSEARCH_URL=http://elasticsearch:9200
+      # - ELASTICSEARCH_URL=http://192.168.99.133:9300
+      - ELASTICSEARCH_USERNAME=admin
+      - ELASTICSEARCH_PASSWORD=admin
+    networks:
+      - esnet
+
+volumes:
+  esdata:
+
+networks:
+  esnet:

@@ -1,0 +1,56 @@
+version: '3.6'
+
+services:
+  # elasticsearch:
+  #   # image: docker.elastic.co/elasticsearch/elasticsearch:6.5.4
+  #   image: docker.elastic.co/elasticsearch/elasticsearch:7.3.1
+  #   ports:
+  #     - "9200:9200"
+  #     - "9300:9300"
+  #   networks: 
+  #     - broker
+      
+  # kibana:
+  #   image: docker.elastic.co/kibana/kibana:6.5.4   
+  #   depends_on:
+  #     - elasticsearch
+  #   ports: ['5601:5601']
+  #   networks: 
+  #     - broker
+
+  cloudera:
+    image: junqueira/broker
+    hostname: quickstart.cloudera
+    tty: true
+    stdin_open: true
+    privileged: true
+    volumes:
+      - './data:/data/'
+    ports:   
+      - "8020:8020"   # HDFS 
+      - "8022:22"     # SSH
+      - "7180:7180"   # Cloudera Manager
+      - "8888:8888"   # Hue
+      - "11000:11000" # Oozie
+      - "50070:50070" # HDFS Rest Namenode
+      - "50075:50075" # HDFS Rest Datanode
+      - "2181:2181"   # Zookeeper
+      - "8088:8088"   # YARN Resource Manager
+      - "19888:19888" # MapReduce Job History
+      - "50030:50030" # MapReduce Job Tracker
+      - "8983:8983"   # Solr
+      - "16000:16000" # Sqoop Metastore
+      - "8042:8042"   # YARN Node Manager
+      - "60010:60010" # HBase Master
+      - "60030:60030" # HBase Region
+      - "9090:9090"   # HBase Thrift
+      - "8080:8080"   # HBase Rest
+      - "7077:7077"   # Spark Master
+    networks: 
+      - broker
+    command: /usr/bin/docker-quickstart  
+
+  
+networks:
+  broker:
+    driver: bridge

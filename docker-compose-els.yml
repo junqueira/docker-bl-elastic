@@ -1,0 +1,101 @@
+version: '3.6'
+# version: '2.2'
+services:
+  kibana:
+    # image: docker.elastic.co/kibana/kibana:6.5.4
+    image: docker.elastic.co/kibana/kibana:6.5.0
+    depends_on:
+      - es01
+    environment:
+      - SERVER_HOST=0.0.0.0
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      # - ELASTICSEARCH_URL=http://elasticsearch:9300
+      - xpack.reporting.capture.browser.chromium.disableSandbox=false
+    ports: 
+      - 5601:5601
+      # - 9201:5601
+    networks:
+      - esnet
+
+  es01:
+    # image: docker.elastic.co/elasticsearch/elasticsearch:7.3.1
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.5.0
+    container_name: es01
+    environment:
+      - node.name=es01
+      # - discovery.type=single-node
+      # - discovery.seed_hosts=es02
+      # - discovery.seed_hosts=["127.0.0.1", "[::1]"]
+      # - cluster.initial_master_nodes=es01,es02
+      # - cluster.initial_master_nodes=["es01"]
+      - cluster.name=docker-cluster
+      # - bootstrap.memory_lock=true
+      - http.host=0.0.0.0
+      - transport.host=127.0.0.1
+      - xpack.security.enabled=false
+      - xpack.security.http.ssl.enabled=false
+      - xpack.security.transport.ssl.enabled=false
+      # - xpack.ssl.verification_mode=none 
+      # - xpack.security.transport.ssl.verification_mode=certificate 
+      # - xpack.security.http.ssl.verification_mode=certificate
+      # - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+      # - elasticsearch.ssl.verificationMode=none
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    # mem_limit: 2g
+    # volumes:
+    #   - esdata01:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+      - 9300:9300
+    networks:
+      - esnet
+
+  es02:
+    # image: docker.elastic.co/elasticsearch/elasticsearch:7.3.1
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.5.0
+    container_name: es02
+    environment:
+      - node.name=es02
+      # - discovery.type=single-node
+      # - discovery.seed_hosts=es01
+      # - discovery.seed_hosts=["127.0.0.1", "[::1]"]
+      # - cluster.initial_master_nodes=es01,es02
+      # - cluster.initial_master_nodes=["es02"]
+      - cluster.name=docker-cluster
+      # - bootstrap.memory_lock=true
+      - http.host=0.0.0.0
+      - transport.host=127.0.0.1
+      - xpack.security.enabled=false
+      - xpack.security.http.ssl.enabled=false
+      - xpack.security.transport.ssl.enabled=false
+      # - xpack.ssl.verification_mode=none 
+      # - xpack.security.transport.ssl.verification_mode=certificate 
+      # - xpack.security.http.ssl.verification_mode=certificate
+      # - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+      # - elasticsearch.ssl.verificationMode=none
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    # mem_limit: 2g
+    # volumes:
+    #   - esdata02:/usr/share/elasticsearch/data
+    # ports:
+    #   - 9200:9200
+    #   - 9300:9300
+    networks:
+      - esnet
+
+volumes:
+  esdata01:
+    driver: local
+  esdata02:
+    driver: local
+
+networks:
+  esnet:

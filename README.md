@@ -1,6 +1,6 @@
 [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/big-data-europe/Lobby)
 
-# docker-hive
+# docker-bl-elastic
 
 This is a docker container for Apache Hive 2.3.2. It is based on https://github.com/big-data-europe/docker-hadoop so check there for Hadoop configurations.
 This deploys Hive and starts a hiveserver2 on port 10000.
@@ -12,7 +12,35 @@ To run Hive with postgresql metastore:
     docker-compose up -d
 ```
 
+#elastic
+
+```
+    docker-compose -f docker-compose-es.yml up
+```
+
+#config with dump image
+
+```
+    docker load < broker.tar.gz
+```
+
+#used
+
+```
+    docker exec -it broker_1 /bin/bash
+    curl -k -u elastic:"password;" http://docker.local:9200
+```
+
+#mac need machine
+
+```
+    docker-machine  create -d virtualbox \
+        --virtualbox-memory 4092 \
+        --virtualbox-disk-size "60000" default
+```
+
 To deploy in Docker Swarm:
+
 ```
     docker stack deploy -c docker-compose.yml hive
 ```
@@ -42,8 +70,3 @@ Then query it from PrestoDB. You can get [presto.jar](https://prestosql.io/docs/
   $ ./presto.jar --server localhost:8080 --catalog hive --schema default
   presto> select * from pokes;
 ```
-
-## Contributors
-* Ivan Ermilov [@earthquakesan](https://github.com/earthquakesan) (maintainer)
-* Yiannis Mouchakis [@gmouchakis](https://github.com/gmouchakis)
-* Ke Zhu [@shawnzhu](https://github.com/shawnzhu)
