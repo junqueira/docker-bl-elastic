@@ -1,53 +1,96 @@
-version: "3"
+# version: '3.6'
+version: '2.2'
 
 services:
-  namenode:
-    image: bde2020/hadoop-namenode:2.0.0-hadoop2.7.4-java8
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.5.4
+    restart: always
+    ports:
+      - "9200:9200"
+    volumes: 
+      - es007:/usr/share/elasticsearch/data
+      - ./elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+      - ./datasets:/datasets
+    environment:
+      # - node.name=node1
+      # - discovery.seed_hosts=server1,server2,server3
+      # - cluster.initial_master_nodes=node1,node2,node3
+      # - cluster.name=docker-cluster
+      # - bootstrap.memory_lock=true
+      # - cluster.routing.allocation.disk.threshold_enabled=false
+      # - "ES_JAVA_OPTS=-Xms2g -Xmx2g"  
+        - discovery.type=single-node
+        - transport.host=localhost
+        - transport.tcp.port=9300
+        - http.port=9200
+        - http.host=0.0.0.0
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535  
+      memlock:
+        soft: -1
+        hard: -1
+    networks: 
+      - m2mhomol
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:6.5.4
+    restart: always
+    volumes: 
+    - ./kibana/kibana.yml:/usr/share/kibana/config/kibana.yml:ro   
+    container_name: kibana
+    ports: ['5601:5601']
+    #environment: 
+      # - server.name=kibana
+      # - server.host=0.0.0.0
+      # - elasticsearch.hosts=http://elasticsearch:9200
+    networks: 
+      - m2mhomol
+
+  cloudera:
+    image: junqueira/broker:last
+    restart: always
+    hostname: quickstart.cloudera
+    tty: true
+    stdin_open: true
+    privileged: true
     volumes:
-      - namenode:/hadoop/dfs/name
+      - './data03:/data03'
+    ports:
+      - "80:80"       # test cloudera
+      - "8020:8020"   # HDFS 
+      - "8022:22"     # SSH
+      - "7180:7180"   # Cloudera Manager
+      - "8888:8888"   # Hue
+      - "11000:11000" # Oozie
+      #- "50070:50070" # HDFS Rest Namenode
+      #- "50075:50075" # HDFS Rest Datanode
+      - "2181:2181"   # Zookeeper
+      - "8088:8088"   # YARN Resource Manager
+      - "19888:19888" # MapReduce Job History
+      - "50030:50030" # MapReduce Job Tracker
+      - "8983:8983"   # Solr
+      - "16000:16000" # Sqoop Metastore
+      - "8042:8042"   # YARN Node Manager
+      - "60010:60010" # HBase Master
+      - "60030:60030" # HBase Region
+      - "9090:9090"   # HBase Thrift
+      - "8080:8080"   # HBase Rest
+      - "7077:7077"   # Spark Master
+      - "18088:18088" # Spark History Server
+      - "4040:4040"   # Spark Jobs 
+    networks: 
+      - m2mhomol
+    command: /usr/bin/docker-quickstart
     environment:
-      - CLUSTER_NAME=test
-    env_file:
-      - ./hadoop-hive.env
-    ports:
-      - "50070:50070"
-  datanode:
-    image: bde2020/hadoop-datanode:2.0.0-hadoop2.7.4-java8
-    volumes:
-      - datanode:/hadoop/dfs/data
-    env_file:
-      - ./hadoop-hive.env
-    environment:
-      SERVICE_PRECONDITION: "namenode:50070"
-    ports:
-      - "50075:50075"
-  hive-server:
-    image: bde2020/hive:2.3.2-postgresql-metastore
-    env_file:
-      - ./hadoop-hive.env
-    environment:
-      HIVE_CORE_CONF_javax_jdo_option_ConnectionURL: "jdbc:postgresql://hive-metastore/metastore"
-      SERVICE_PRECONDITION: "hive-metastore:9083"
-    ports:
-      - "10000:10000"
-  hive-metastore:
-    image: bde2020/hive:2.3.2-postgresql-metastore
-    env_file:
-      - ./hadoop-hive.env
-    command: /opt/hive/bin/hive --service metastore
-    environment:
-      SERVICE_PRECONDITION: "namenode:50070 datanode:50075 hive-metastore-postgresql:5432"
-    ports:
-      - "9083:9083"
-  hive-metastore-postgresql:
-    image: bde2020/hive-metastore-postgresql:2.3.0
-    ports:
-      - "5432:5432"
-  presto-coordinator:
-    image: shawnzhu/prestodb:0.181
-    ports:
-      - "8080:8080"
+      - TZ=America/Sao_Paulo
+      - server.host=10.0.2.15
+        
+networks:
+  m2mhomol:
+    driver: bridge
 
 volumes:
-  namenode:
-  datanode:
+  es007:
+    driver: local 
